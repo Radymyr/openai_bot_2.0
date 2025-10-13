@@ -15,6 +15,8 @@ async function handleMessage(ctx) {
     return;
   }
 
+  await handleReaction(ctx);
+
   const isBotOwner =
     ctx.message?.from.id === parseInt(botOwnerId) &&
     ctx.chat.id === parseInt(botOwnerId);
@@ -115,8 +117,6 @@ async function handleMessage(ctx) {
 
     // Обработка шуток
     await makeJokes(ctx);
-    // Обработка reaction
-    await handleReaction(ctx);
 
     // Ответ на реплаи бота или обращение по имени
     if (
