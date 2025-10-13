@@ -6,7 +6,8 @@ export const handleReaction = async (ctx) => {
     const chatId = ctx.message?.chat.id;
     const messageId = ctx.message?.message_id;
 
-    const randomReaction = Math.floor(Math.random() * reactions.length);
+    const randomReaction =
+      reactions[Math.floor(Math.random() * reactions.length)];
     try {
       await bot.telegram.setMessageReaction(chatId, messageId, [
         { type: "emoji", emoji: randomReaction },
