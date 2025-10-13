@@ -1,1 +1,1 @@
-export const dictionary = ['бро', 'братан', 'саня', 'санек', 'санёк'];
+export const dictionary = ["бро", "братан", "саня", "санек", "санёк"];
