@@ -1,0 +1,39 @@
+.vercel
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+package-lock.json
+.env
+.env.*  # для .env.production, .env.local и т.д.
+.DS_Store
+
+# Logs
+logs
+*.log
+*.log.*
+
+# Optional OS files
+Thumbs.db
+*.swp
+
+# Vercel
+.vercel/
+output/  # если используешь output-based routing в Vercel
+
+# Build
+dist/
+build/
+.next/  # если используешь Next.js
+
+# Coverage
+coverage/
+*.lcov
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

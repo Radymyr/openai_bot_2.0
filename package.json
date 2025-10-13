@@ -1,0 +1,28 @@
+{
+  "name": "openai_bot",
+  "version": "1.0.0",
+  "description": "openai bot",
+  "main": "api/webhook.js",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Radymyr/openai_bot.git"
+  },
+  "author": "Radymyr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Radymyr/openai_bot/issues"
+  },
+  "homepage": "https://github.com/Radymyr/openai_bot#readme",
+  "dependencies": {
+    "@upstash/redis": "^1.20.0",
+    "dotenv": "^16.3.2",
+    "groq-sdk": "^0.16.0",
+    "telegraf": "^4.16.3",
+    "vercel": "^43.3.0"
+  },
+  "type": "module"
+}
