@@ -5,9 +5,7 @@ export const handleReaction = async (ctx) => {
   const messageId = ctx.message?.message_id;
   console.log(chatId, messageId, "function was run");
   try {
-    await bot.telegram.setMessageReaction(chatId, messageId, [
-      { type: "emoji", emoji: "🎅" },
-    ]);
+    await bot.telegram.setMessageReaction(chatId, messageId);
   } catch (err) {
     console.error(err);
   }
