@@ -2,7 +2,7 @@ import { bot } from "./initializers.js";
 import { reactions } from "./constans/reactions.js";
 
 export const handleReaction = async (ctx) => {
-  if (Math.random() <= 0.3) {
+  if (Math.random() <= 0.5) {
     const chatId = ctx.message?.chat.id;
     const messageId = ctx.message?.message_id;
 
