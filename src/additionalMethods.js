@@ -1,6 +1,6 @@
 import { bot } from "./initializers.js";
 
-export async function banMember(ctx, sec = 60) {
+export async function banChatMember(ctx, sec = 60) {
   try {
     const chatId = ctx.chat.id;
     const userId = ctx.message.from.id;
@@ -26,5 +26,23 @@ export async function banMember(ctx, sec = 60) {
     );
   } catch (error) {
     console.error("Error:", error);
+  }
+}
+
+export async function exitTheChat(ctx) {
+  const chatId = ctx.chat?.id;
+
+  if (!chatId) {
+    return;
+  }
+
+  try {
+    await bot.telegram.sendMessage(
+      chatId,
+      "Someone's writing something again 🤦‍♂️ That's it, I'm on vacation. Bye 👋",
+    );
+    await bot.telegram.leaveChat(ctx.chat.id);
+  } catch (error) {
+    console.error(error);
   }
 }

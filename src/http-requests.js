@@ -34,6 +34,8 @@ export async function getDataFromOpenAi(
       stop: null,
     });
 
+    console.log(messages);
+
     const answer = chatCompletion.choices[0].message;
     console.log("answer:", answer);
 
