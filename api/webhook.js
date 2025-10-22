@@ -4,6 +4,7 @@ import { USERS } from "../src/users.js";
 import { getDataFromOpenAi } from "../src/http-requests.js";
 import { makeJokes } from "../src/makeJokes.js";
 import { handleReaction } from "../src/handleReaction.js";
+import { exitTheChat } from "../src/additionalMethods.js";
 
 async function handleMessage(ctx) {
   const usersId = USERS.map((user) => user.id);
@@ -14,7 +15,7 @@ async function handleMessage(ctx) {
     await ctx.reply("🖕", { reply_to_message_id: ctx.message.message_id });
     return;
   }
-
+  await exitTheChat(ctx);
   await handleReaction(ctx);
 
   const isBotOwner =
