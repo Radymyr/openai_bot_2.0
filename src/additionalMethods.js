@@ -42,7 +42,9 @@ export async function banChatMember(ctx, sec = 60) {
 }
 
 export async function exitTheChat(ctx) {
-  if (new Date() / 1000 - ctx.message.date > 10) {
+  const messageAge = Math.floor(Date.now() / 1000) - ctx.message.date;
+
+  if (messageAge > 10) {
     return;
   }
 
