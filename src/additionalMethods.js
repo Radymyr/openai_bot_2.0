@@ -42,6 +42,10 @@ export async function banChatMember(ctx, sec = 60) {
 }
 
 export async function exitTheChat(ctx) {
+  if (ctx.message.new_chat_member) {
+    return;
+  }
+
   if (ctx.message.from.is_bot) {
     return;
   }
