@@ -1,5 +1,17 @@
 import { bot } from "./initializers.js";
 
+export async function safeReply(ctx, text, extra = {}) {
+  try {
+    await ctx.reply(text, { ...extra });
+  } catch (err) {
+    if (err.description?.includes("message to be replied not found")) {
+      await ctx.reply(text);
+    } else {
+      console.error("Reply error:", err);
+    }
+  }
+}
+
 export async function banChatMember(ctx, sec = 60) {
   try {
     const chatId = ctx.chat.id;
