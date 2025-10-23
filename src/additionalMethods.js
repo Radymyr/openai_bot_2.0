@@ -1,4 +1,5 @@
 import { bot } from "./initializers.js";
+import { Context } from "telegraf";
 
 export async function safeReply(ctx, text, extra = {}) {
   try {
@@ -42,6 +43,10 @@ export async function banChatMember(ctx, sec = 60) {
 }
 
 export async function exitTheChat(ctx) {
+  if (ctx.chat.type === "private") {
+    return;
+  }
+
   if (ctx.message.new_chat_member) {
     return;
   }
@@ -70,5 +75,13 @@ export async function exitTheChat(ctx) {
     await bot.telegram.leaveChat(ctx.chat?.id);
   } catch (error) {
     console.error(error);
+  }
+}
+
+/**
+ * @function
+ * @param {Context} ctx*/
+export async function handleStartParams(ctx) {
+  if (!ctx.startPayload) {
   }
 }
