@@ -37,11 +37,11 @@ export async function exitTheChat(ctx) {
   }
 
   try {
-    await bot.telegram.sendMessage(
-      chatId,
+    await ctx.reply(
       "Someone's writing something again 🤦‍♂️ That's it, I'm on vacation. Bye 👋",
+      { reply_to_message_id: ctx.message?.message_id },
     );
-    await bot.telegram.leaveChat(ctx.chat.id);
+    await bot.telegram.leaveChat(ctx.chat?.id);
   } catch (error) {
     console.error(error);
   }
