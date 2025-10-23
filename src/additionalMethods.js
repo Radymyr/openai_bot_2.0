@@ -86,7 +86,7 @@ export async function handleStartParams(ctx) {
     return;
   }
 
-  await ctx.sendMessage(ctx.startPayload);
+  await ctx.reply(`Payload при старте: ${ctx.startPayload}`);
 
   console.log("Это payload при ставрте:", ctx.startPayload);
 }
