@@ -42,6 +42,10 @@ export async function banChatMember(ctx, sec = 60) {
 }
 
 export async function exitTheChat(ctx) {
+  if (ctx.message.from.is_bot) {
+    return;
+  }
+
   const messageAge = Math.floor(Date.now() / 1000) - ctx.message.date;
 
   if (messageAge > 10) {
