@@ -42,6 +42,10 @@ export async function banChatMember(ctx, sec = 60) {
 }
 
 export async function exitTheChat(ctx) {
+  if (new Date() / 1000 - ctx.message.date > 10) {
+    return;
+  }
+
   const chatId = ctx.chat?.id;
 
   if (!chatId) {
