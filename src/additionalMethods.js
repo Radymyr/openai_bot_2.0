@@ -80,8 +80,11 @@ export async function exitTheChat(ctx) {
 
 /**
  * @function
- * @param {Context} ctx*/
+ * @param {Context & {startPayload?: string}} ctx*/
 export async function handleStartParams(ctx) {
   if (!ctx.startPayload) {
+    return;
   }
+
+  console.log("Это payload при ставрте:", ctx.startPayload);
 }
