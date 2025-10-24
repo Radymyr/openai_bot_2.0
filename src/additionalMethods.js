@@ -79,34 +79,17 @@ export async function exitTheChat(ctx) {
 }
 
 export async function handleStartParams(ctx) {
-  // if (!ctx.message.new_chat_member) {
-  //   return;
-  // }
+  const text = ctx.message?.text;
 
-  const payload = ctx.message?.text.split(" ")[1];
+  if (!text || !text.startsWith("/start")) {
+    return;
+  }
 
-  await ctx.reply(payload);
+  const payload = text.split(" ")[1];
+
+  if (!payload) {
+    return;
+  }
+
+  console.log(`do something with ${payload}`);
 }
-
-const someObject = {
-  update_id: 520675996,
-  message: {
-    message_id: 5499,
-    from: {
-      id: 7868370890,
-      is_bot: false,
-      first_name: "Whisky",
-      username: "Whisky_0_o",
-      language_code: "en",
-    },
-    chat: {
-      id: 7868370890,
-      first_name: "Whisky",
-      username: "Whisky_0_o",
-      type: "private",
-    },
-    date: 1761301301,
-    text: "/start hello",
-    entities: [[Object]],
-  },
-};
