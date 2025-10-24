@@ -2,7 +2,9 @@ import { client } from "./initializers.js";
 
 const saveToRedis = async (key, data) => {
   try {
-    await client.set(key, JSON.stringify(data));
+    console.log("typeof data before save:", typeof data, data);
+
+    await client.set(key, data);
   } catch (error) {
     console.error("Error saving to Redis:", error.message);
   }
@@ -11,6 +13,7 @@ const saveToRedis = async (key, data) => {
 const getFromRedis = async (key) => {
   try {
     const data = await client.get(key);
+    console.log("real data in Redis:", data);
     if (!data) {
       return [];
     }
@@ -22,7 +25,7 @@ const getFromRedis = async (key) => {
 };
 
 const trimContext = (context) => {
-  const CONTEXT_LENGTH = -3;
+  const CONTEXT_LENGTH = -7;
   return context.slice(CONTEXT_LENGTH);
 };
 
@@ -32,8 +35,7 @@ export const getContext = async (userId) => {
   const context = await getFromRedis(stringUserId);
   console.log("context in get Context:", context);
 
-  const filteredContext = context.filter((item) => item.role !== "system");
-  return await trimContext(filteredContext);
+  return await trimContext(context);
 };
 
 export const addToContext = async (message, userId, answer = {}) => {
@@ -41,22 +43,15 @@ export const addToContext = async (message, userId, answer = {}) => {
     console.error("Error: Message content is empty");
     return;
   }
-  const systemMessage =
-    "твое имя Саня фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко!";
 
   try {
-    const systemSettings = {
-      role: "system",
-      content: systemMessage,
-    };
-
     const context = await getContext(userId);
     let newContext = [];
 
     if (Object.keys(answer).length > 0) {
-      newContext = [systemSettings, ...context, message, answer];
+      newContext = [...context, message, answer];
     } else {
-      newContext = [systemSettings, ...context, message];
+      newContext = [...context, message];
     }
 
     console.log("ID_USER:", userId, "newContext:", newContext);

@@ -1,5 +1,4 @@
 import { bot } from "./initializers.js";
-import { Context } from "telegraf";
 
 export async function safeReply(ctx, text, extra = {}) {
   try {
@@ -76,22 +75,4 @@ export async function exitTheChat(ctx) {
   } catch (error) {
     console.error(error);
   }
-}
-
-export async function handleStartParams(ctx) {
-  const text = ctx.message?.text;
-
-  if (!text || !text.startsWith("/start")) {
-    return;
-  }
-
-  const payload = text.split(" ")[1];
-
-  if (!payload) {
-    return;
-  }
-
-  console.log(`do something with ${payload}`);
-
-  return payload.trim();
 }

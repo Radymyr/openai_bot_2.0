@@ -1,14 +1,10 @@
-import { bot, botOwnerId, groupsId } from "../src/initializers.js";
+import { bot, botOwnerId, client, groupsId } from "../src/initializers.js";
 import { dictionary } from "../src/commands.js";
 import { USERS } from "../src/users.js";
 import { getDataFromOpenAi } from "../src/http-requests.js";
 import { makeJokes } from "../src/makeJokes.js";
 import { handleReaction } from "../src/handleReaction.js";
-import {
-  exitTheChat,
-  handleStartParams,
-  safeReply,
-} from "../src/additionalMethods.js";
+import { exitTheChat, safeReply } from "../src/additionalMethods.js";
 import { usersTexts } from "../src/constans/texts.js";
 import { addToContext } from "../src/addNewContext.js";
 
@@ -17,11 +13,11 @@ async function handleMessage(ctx) {
   const groupId = groupsId[1].groupId; // ID группы "Престарелые алкоголики"
 
   // Фильтрация: только разрешённые пользователи
-  if (!usersId.includes(ctx.message?.from.id)) {
-    await safeReply("🖕", { reply_to_message_id: ctx.message?.message_id });
-    return;
-  }
-  const payload = await handleStartParams(ctx);
+  // if (!usersId.includes(ctx.message?.from.id)) {
+  //   await safeReply("🖕", { reply_to_message_id: ctx.message?.message_id });
+  //   return;
+  // }
+
   await exitTheChat(ctx);
   await handleReaction(ctx);
 
@@ -37,7 +33,6 @@ async function handleMessage(ctx) {
     const voiceId = ctx.message?.voice?.file_id;
     const videoNoteId = ctx.message?.video_note?.file_id;
     const text = ctx.message?.text;
-    const messageId = ctx.message?.message_id;
 
     try {
       if (photoId) {
@@ -126,27 +121,11 @@ async function handleMessage(ctx) {
     // Обработка шуток
     await makeJokes(ctx);
 
-    const textContent = usersTexts[payload] ? usersTexts[payload].welcome : "";
-
-    if (textContent) {
-      await ctx.reply(textContent);
-    }
-
-    const startMessage = textContent
-      ? {
-          role: "assistant",
-          content: textContent,
-        }
-      : null;
-
-    if (ctx.message.text.startsWith("/start") && startMessage) {
-      await addToContext(startMessage, ctx.message.from.id);
-    }
-
     // Ответ на реплаи бота или обращение по имени
     if (
       ctx.message.reply_to_message?.from.is_bot ||
-      dictionary.some((name) => loweredText?.includes(name))
+      dictionary.some((name) => loweredText?.includes(name)) ||
+      ctx.chat.type === "private"
     ) {
       const originalMessage = ctx.message?.message_id;
 
@@ -168,8 +147,33 @@ async function handleMessage(ctx) {
   }
 }
 
+bot.start(async (ctx) => {
+  try {
+    const text = ctx.message.text;
+    const payload = text.split(" ")[1]?.trim();
+    console.log("Raw payload:", JSON.stringify(payload));
+
+    const textContent = payload && usersTexts[payload]?.welcome;
+
+    const hasStartedKey = `hasStarted:${ctx.from.id}`;
+    const hasStarted = await client.get(hasStartedKey);
+    if (!hasStarted) {
+      await safeReply(ctx, textContent);
+      await addToContext(
+        { role: "assistant", content: textContent },
+        ctx.from.id,
+      );
+      await client.set(hasStartedKey, "true");
+    }
+  } catch (err) {
+    console.error(err);
+    await safeReply(ctx, "Привет! Что-то пошло не так 😅");
+  }
+});
+
 // Регистрация обработчика сообщений
 bot.on("message", handleMessage);
+// await bot.launch();
 
 // Serverless-функция для Vercel
 export default async (req, res) => {
@@ -179,6 +183,7 @@ export default async (req, res) => {
 
   try {
     const update = req?.body;
+    console.log(req.url);
     console.log(update);
     await bot.handleUpdate(update);
     res.status(200).json({ ok: true });

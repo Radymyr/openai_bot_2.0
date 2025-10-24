@@ -1,6 +1,7 @@
 import { addToContext, getContext } from "./addNewContext.js";
-import Groq from "groq-sdk";
+import { Groq } from "groq-sdk";
 import { bot, groupsId } from "./initializers.js";
+
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const textLimit =
@@ -12,15 +13,41 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
   }
 
   try {
+    // 1️⃣ Сообщение от пользователя
     const message = {
       role: "user",
       content: textMessage || "Message is empty",
     };
 
+    // 2️⃣ Забираем контекст из Redis
     let context = await getContext(userId);
+    if (!Array.isArray(context)) context = [];
 
-    const messages = [...context, { ...startParams }, message];
+    // 3️⃣ Гарантируем наличие system-сообщения
+    const systemMessage = {
+      role: "system",
+      content:
+        "твое имя Саня фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко!",
+    };
 
+    // если system нет в контексте — добавляем
+    if (!context.some((msg) => msg.role === "system")) {
+      context = [systemMessage, ...context];
+    }
+
+    // 4️⃣ Формируем полный массив сообщений
+    const messages = [...context];
+
+    if (Object.values(startParams).length > 0) {
+      messages.push(startParams);
+    }
+
+    messages.push(message);
+
+    // 5️⃣ Лог для отладки (удали потом)
+    console.log("---messages >>>", JSON.stringify(messages, null, 2));
+
+    // 6️⃣ Запрос к модели Groq
     const chatCompletion = await groq.chat.completions.create({
       messages,
       model: "llama-3.3-70b-versatile",
@@ -32,17 +59,22 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
 
     const answer = chatCompletion.choices[0].message;
 
+    // 7️⃣ Сохраняем в контекст
     await addToContext(message, userId, answer);
 
+    // 8️⃣ Возвращаем ответ
     return answer.content;
   } catch (error) {
     console.error(
       `Error in getDataFromOpenAi for user ${userId}:`,
       error.message || error,
     );
-    if (error?.response.status === 429) {
+
+    // 9️⃣ Обработка лимитов API
+    if (error?.response?.status === 429) {
       await bot.telegram.sendMessage(groupsId[1].groupId, textLimit);
     }
+
     throw error;
   }
 }
