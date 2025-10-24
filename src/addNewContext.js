@@ -37,30 +37,32 @@ export const getContext = async (userId) => {
 };
 
 export const addToContext = async (message, userId, answer = {}) => {
+  if (!message.content) {
+    console.error("Error: Message content is empty");
+    return;
+  }
   const systemMessage =
     "твое имя Саня фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко!";
+
   try {
     const systemSettings = {
       role: "system",
       content: systemMessage,
     };
 
-    if (!message.content) {
-      console.error("Error: Message content is empty");
-      return;
-    }
-
-    const trimmedContext = await getContext(userId);
+    const context = await getContext(userId);
     let newContext = [];
 
     if (Object.keys(answer).length > 0) {
-      newContext = [systemSettings, ...trimmedContext, message, answer];
+      newContext = [systemSettings, ...context, message, answer];
     } else {
-      newContext = [systemSettings, ...trimmedContext, message];
+      newContext = [systemSettings, ...context, message];
     }
 
     console.log("ID_USER:", userId, "newContext:", newContext);
+
     await saveToRedis(userId.toString(), newContext);
+
     return newContext;
   } catch (error) {
     console.error("Error in addToContext:", error);

@@ -7,14 +7,14 @@ const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
 
 export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
-  if (!userId || !textMessage) {
-    throw new Error("userId or textMessage not transferred");
+  if (!userId) {
+    throw new Error("userId not transferred");
   }
 
   try {
     const message = {
       role: "user",
-      content: textMessage || "Message content is empty",
+      content: textMessage || "Message is empty",
     };
 
     let context = await getContext(userId);

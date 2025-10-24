@@ -10,6 +10,7 @@ import {
   safeReply,
 } from "../src/additionalMethods.js";
 import { usersTexts } from "../src/constans/texts.js";
+import { addToContext } from "../src/addNewContext.js";
 
 async function handleMessage(ctx) {
   const usersId = USERS.map((user) => user.id);
@@ -125,6 +126,23 @@ async function handleMessage(ctx) {
     // Обработка шуток
     await makeJokes(ctx);
 
+    const textContent = usersTexts[payload] ? usersTexts[payload].welcome : "";
+
+    if (textContent) {
+      await ctx.reply(textContent);
+    }
+
+    const startMessage = textContent
+      ? {
+          role: "assistant",
+          content: textContent,
+        }
+      : null;
+
+    if (ctx.message.text.startsWith("/start") && startMessage) {
+      await addToContext(startMessage, ctx.message.from.id);
+    }
+
     // Ответ на реплаи бота или обращение по имени
     if (
       ctx.message.reply_to_message?.from.is_bot ||
@@ -132,22 +150,11 @@ async function handleMessage(ctx) {
     ) {
       const originalMessage = ctx.message?.message_id;
 
-      const textContent = usersTexts[payload]
-        ? usersTexts[payload].welcome
-        : "";
-
-      if (textContent) {
-        await ctx.reply(textContent);
-      }
-
-      const startTextMessage = textContent ? textContent : null;
-
       const textMessage = ctx.message?.text;
 
       const response = await getDataFromOpenAi(
         ctx.message.from.id,
         textMessage,
-        startTextMessage,
       );
 
       await ctx.reply(response, { reply_to_message_id: originalMessage });
