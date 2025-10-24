@@ -83,9 +83,7 @@ export async function handleStartParams(ctx) {
     return;
   }
 
-  const payload = ctx.message?.text.split(" ");
+  const payload = ctx.message?.text.split(" ")[1];
 
-  payload.forEach((value) => ctx.reply(value || ""));
-
-  console.log("Это payload при ставрте:", payload);
+  await ctx.reply(payload);
 }
