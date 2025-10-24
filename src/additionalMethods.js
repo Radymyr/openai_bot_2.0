@@ -78,15 +78,14 @@ export async function exitTheChat(ctx) {
   }
 }
 
-/**
- * @function
- * @param {Context & {startPayload?: string}} ctx*/
 export async function handleStartParams(ctx) {
-  if (!ctx.startPayload) {
+  if (!ctx.message.new_chat_member) {
     return;
   }
 
-  await ctx.reply(`Payload при старте: ${ctx.startPayload}`);
+  const payload = ctx.message.text.split(" ").slice(1);
 
-  console.log("Это payload при ставрте:", ctx.startPayload);
+  payload.forEach((value) => ctx.reply(value || ""));
+
+  console.log("Это payload при ставрте:", payload);
 }
