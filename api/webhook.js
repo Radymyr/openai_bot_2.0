@@ -9,6 +9,7 @@ import {
   handleStartParams,
   safeReply,
 } from "../src/additionalMethods.js";
+import { usersTexts } from "../src/constans/texts.js";
 
 async function handleMessage(ctx) {
   const usersId = USERS.map((user) => user.id);
@@ -19,7 +20,7 @@ async function handleMessage(ctx) {
     await safeReply("🖕", { reply_to_message_id: ctx.message?.message_id });
     return;
   }
-  await handleStartParams(ctx);
+  const payload = await handleStartParams(ctx);
   await exitTheChat(ctx);
   await handleReaction(ctx);
 
@@ -129,11 +130,26 @@ async function handleMessage(ctx) {
       ctx.message.reply_to_message?.from.is_bot ||
       dictionary.some((name) => loweredText?.includes(name))
     ) {
-      const originalMessage = ctx.message.message_id;
-      const response = await getDataFromOpenAi(ctx.message.from.id, {
-        role: "user",
-        content: ctx.message?.text || "",
-      });
+      const originalMessage = ctx.message?.message_id;
+
+      const textContent = usersTexts[payload]
+        ? usersTexts[payload].welcome
+        : "";
+
+      if (textContent) {
+        await ctx.reply(textContent);
+      }
+
+      const startTextMessage = textContent ? textContent : null;
+
+      const textMessage = ctx.message?.text;
+
+      const response = await getDataFromOpenAi(
+        ctx.message.from.id,
+        textMessage,
+        startTextMessage,
+      );
+
       await ctx.reply(response, { reply_to_message_id: originalMessage });
     }
   } catch (err) {

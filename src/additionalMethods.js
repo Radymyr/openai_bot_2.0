@@ -92,4 +92,6 @@ export async function handleStartParams(ctx) {
   }
 
   console.log(`do something with ${payload}`);
+
+  return payload;
 }

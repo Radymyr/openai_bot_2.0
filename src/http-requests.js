@@ -6,27 +6,23 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
 
-export async function getDataFromOpenAi(
-  userId,
-  message = { role: "user", content: "Message content is empty" },
-) {
-  try {
-    if (
-      !message.content ||
-      typeof message.content !== "string" ||
-      message.content.trim() === ""
-    ) {
-      throw new Error("Message content is empty or invalid");
-    }
+export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
+  if (!userId || !textMessage) {
+    throw new Error("userId or textMessage not transferred");
+  }
 
-    const userMessage = { role: "user", content: message.content };
+  try {
+    const message = {
+      role: "user",
+      content: textMessage || "Message content is empty",
+    };
 
     let context = await getContext(userId);
 
-    const messages = [...context, userMessage];
+    const messages = [...context, { ...startParams }, message];
 
     const chatCompletion = await groq.chat.completions.create({
-      messages: messages,
+      messages,
       model: "llama-3.3-70b-versatile",
       temperature: 1,
       max_completion_tokens: 1024,
@@ -34,10 +30,7 @@ export async function getDataFromOpenAi(
       stop: null,
     });
 
-    console.log(messages);
-
     const answer = chatCompletion.choices[0].message;
-    console.log("answer:", answer);
 
     await addToContext(message, userId, answer);
 
