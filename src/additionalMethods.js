@@ -83,7 +83,7 @@ export async function handleStartParams(ctx) {
     return;
   }
 
-  const payload = ctx.message.text.split(" ").slice(1);
+  const payload = ctx.message?.text.split(" ");
 
   payload.forEach((value) => ctx.reply(value || ""));
 
