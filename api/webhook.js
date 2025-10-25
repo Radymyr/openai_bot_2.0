@@ -153,7 +153,9 @@ bot.start(async (ctx) => {
     const payload = text.split(" ")[1]?.trim();
     console.log("Raw payload:", JSON.stringify(payload));
 
-    const textContent = (payload && usersTexts[payload]?.welcome) || "";
+    const textContent =
+      (payload && usersTexts[payload]?.welcome) ||
+      "Привет, как ты, давно не общались?";
 
     const hasStartedKey = `hasStarted:${ctx.from.id}`;
     const hasStarted = await client.get(hasStartedKey);
