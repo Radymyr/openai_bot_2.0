@@ -4,7 +4,7 @@ const saveToRedis = async (key, data) => {
   try {
     console.log("typeof data before save:", typeof data, data);
 
-    await client.set(key, data);
+    await client.set(key, data, { ex: 60 * 60 * 24 * 30 });
   } catch (error) {
     console.error("Error saving to Redis:", error.message);
   }

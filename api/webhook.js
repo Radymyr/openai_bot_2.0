@@ -152,11 +152,12 @@ async function handleMessage(ctx) {
   }
 }
 
-bot.start(async (ctx) => {
+async function handleStart(ctx) {
   try {
     const text = ctx.message.text;
     const payload = text.split(" ")[1]?.trim();
     console.log("Raw payload:", JSON.stringify(payload));
+    await ctx.deleteMessage();
 
     const textContent =
       (payload && usersTexts[payload]?.welcome) ||
@@ -169,17 +170,18 @@ bot.start(async (ctx) => {
         { role: "assistant", content: textContent },
         ctx.from.id,
       );
-      await client.set(hasStartedKey, "true");
+      await client.set(hasStartedKey, "true", { ex: 60 * 60 * 24 * 30 });
     }
   } catch (err) {
     console.error(err);
     await safeReply(ctx, "Привет! Что-то пошло не так 😅");
   }
-});
+}
 
 // Регистрация обработчика сообщений
+bot.start(handleStart);
 bot.on("message", handleMessage);
-await bot.launch();
+// await bot.launch();
 
 // Serverless-функция для Vercel
 export default async (req, res) => {
