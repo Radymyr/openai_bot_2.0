@@ -1,6 +1,7 @@
 import { addToContext, getContext } from "./addNewContext.js";
 import { Groq } from "groq-sdk";
-import { bot, groupsId } from "./initializers.js";
+import { bot } from "./initializers.js";
+import { currentGroupId } from "./groups.js";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -27,7 +28,7 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
     const systemMessage = {
       role: "system",
       content:
-        "ты Девушка 25лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко!",
+        "ты Девушка 25 лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко! иногда шутишь пошло и двусмысленно",
     };
 
     // если system нет в контексте — добавляем
@@ -72,7 +73,7 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
 
     // 9️⃣ Обработка лимитов API
     if (error?.response?.status === 429) {
-      await bot.telegram.sendMessage(groupsId[1].groupId, textLimit);
+      await bot.telegram.sendMessage(currentGroupId, textLimit);
     }
 
     throw error;

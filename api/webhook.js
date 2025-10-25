@@ -1,4 +1,4 @@
-import { bot, botOwnerId, client, groupsId } from "../src/initializers.js";
+import { bot, botOwnerId, client } from "../src/initializers.js";
 import { dictionary } from "../src/commands.js";
 import { USERS } from "../src/users.js";
 import { getDataFromOpenAi } from "../src/http-requests.js";
@@ -7,13 +7,13 @@ import { handleReaction } from "../src/handleReaction.js";
 import { exitTheChat, safeReply } from "../src/additionalMethods.js";
 import { usersTexts } from "../src/constans/texts.js";
 import { addToContext } from "../src/addNewContext.js";
+import { currentGroupId } from "../src/groups.js";
 
 async function handleMessage(ctx) {
-  const usersId = USERS.map((user) => user.id);
-  const groupId = groupsId[1].groupId; // ID группы "Престарелые алкоголики"
+  const usersIds = USERS.map((user) => user.id);
 
   // Фильтрация: только разрешённые пользователи
-  // if (!usersId.includes(ctx.message?.from.id)) {
+  // if (!usersIds.includes(ctx.message?.from.id)) {
   //   await safeReply("🖕", { reply_to_message_id: ctx.message?.message_id });
   //   return;
   // }
@@ -24,9 +24,11 @@ async function handleMessage(ctx) {
   const isBotOwner =
     ctx.message?.from.id === parseInt(botOwnerId) &&
     ctx.chat.id === parseInt(botOwnerId);
+
   const isNotBotReply = !ctx.message?.reply_to_message?.from.is_bot;
 
   // Логика для владельца бота: пересылка сообщений в группу
+
   if (isBotOwner && isNotBotReply) {
     const photoId = ctx.message?.photo?.[0]?.file_id;
     const animationId = ctx.message?.animation?.file_id;
@@ -36,15 +38,15 @@ async function handleMessage(ctx) {
 
     try {
       if (photoId) {
-        await bot.telegram.sendPhoto(groupId, photoId);
+        await bot.telegram.sendPhoto(currentGroupId, photoId);
       } else if (animationId) {
-        await bot.telegram.sendAnimation(groupId, animationId);
+        await bot.telegram.sendAnimation(currentGroupId, animationId);
       } else if (voiceId) {
-        await bot.telegram.sendVoice(groupId, voiceId);
+        await bot.telegram.sendVoice(currentGroupId, voiceId);
       } else if (videoNoteId) {
-        await bot.telegram.sendVideoNote(groupId, videoNoteId);
+        await bot.telegram.sendVideoNote(currentGroupId, videoNoteId);
       } else if (text) {
-        await bot.telegram.sendMessage(groupId, text);
+        await bot.telegram.sendMessage(currentGroupId, text);
       }
       return;
     } catch (error) {
@@ -56,36 +58,39 @@ async function handleMessage(ctx) {
 
   // Пересылка сообщений от пользователей владельцу
   const userSignature = `chat ID: ${ctx.chat.id} (${ctx.from?.first_name} ID:${ctx.message?.from.id}) Message Id: ${ctx.message.message_id}`;
+  try {
+    if (!isBotOwner) {
+      const photoId = ctx.message?.photo?.[0]?.file_id;
+      const animationId = ctx.message?.animation?.file_id;
+      const voiceId = ctx.message?.voice?.file_id;
+      const videoNoteId = ctx.message?.video_note?.file_id;
+      const text = ctx.message?.text;
 
-  if (isNotBotReply) {
-    const photoId = ctx.message?.photo?.[0]?.file_id;
-    const animationId = ctx.message?.animation?.file_id;
-    const voiceId = ctx.message?.voice?.file_id;
-    const videoNoteId = ctx.message?.video_note?.file_id;
-    const text = ctx.message?.text;
-
-    if (photoId) {
-      await bot.telegram.sendPhoto(botOwnerId, photoId, {
-        caption: userSignature,
-      });
-    } else if (animationId) {
-      await bot.telegram.sendAnimation(botOwnerId, animationId, {
-        caption: userSignature,
-      });
-    } else if (voiceId) {
-      await bot.telegram.sendVoice(botOwnerId, voiceId, {
-        caption: userSignature,
-      });
-    } else if (videoNoteId) {
-      await bot.telegram.sendVideoNote(botOwnerId, videoNoteId);
-    } else if (text) {
-      await bot.telegram.sendMessage(botOwnerId, `${userSignature}: ${text}`);
-    } else {
-      await bot.telegram.sendMessage(
-        botOwnerId,
-        `${userSignature}: non-textual content!`,
-      );
+      if (photoId) {
+        await bot.telegram.sendPhoto(botOwnerId, photoId, {
+          caption: userSignature,
+        });
+      } else if (animationId) {
+        await bot.telegram.sendAnimation(botOwnerId, animationId, {
+          caption: userSignature,
+        });
+      } else if (voiceId) {
+        await bot.telegram.sendVoice(botOwnerId, voiceId, {
+          caption: userSignature,
+        });
+      } else if (videoNoteId) {
+        await bot.telegram.sendVideoNote(botOwnerId, videoNoteId);
+      } else if (text) {
+        await bot.telegram.sendMessage(botOwnerId, `${userSignature}: ${text}`);
+      } else {
+        await bot.telegram.sendMessage(
+          botOwnerId,
+          `${userSignature}: non-textual content!`,
+        );
+      }
     }
+  } catch (error) {
+    console.error(error);
   }
 
   try {
@@ -119,13 +124,13 @@ async function handleMessage(ctx) {
     const loweredText = ctx.message.text?.toLowerCase();
 
     // Обработка шуток
-    await makeJokes(ctx);
+    // await makeJokes(ctx);
 
     // Ответ на реплаи бота или обращение по имени
     if (
       ctx.message.reply_to_message?.from.is_bot ||
       dictionary.some((name) => loweredText?.includes(name)) ||
-      ctx.chat.type === "private"
+      (ctx.chat.type === "private" && !isBotOwner)
     ) {
       const originalMessage = ctx.message?.message_id;
 
@@ -153,11 +158,13 @@ bot.start(async (ctx) => {
     const payload = text.split(" ")[1]?.trim();
     console.log("Raw payload:", JSON.stringify(payload));
 
-    const textContent = payload && usersTexts[payload]?.welcome;
+    const textContent =
+      (payload && usersTexts[payload]?.welcome) ||
+      "Привет, давно не общались, как ты?";
     const hasStartedKey = `hasStarted:${ctx.from.id}`;
     const hasStarted = await client.get(hasStartedKey);
     if (!hasStarted) {
-      await safeReply(ctx, textContent || "Привет, как ты, давно не общались?");
+      await safeReply(ctx, textContent);
       await addToContext(
         { role: "assistant", content: textContent },
         ctx.from.id,
@@ -172,7 +179,7 @@ bot.start(async (ctx) => {
 
 // Регистрация обработчика сообщений
 bot.on("message", handleMessage);
-// await bot.launch();
+await bot.launch();
 
 // Serverless-функция для Vercel
 export default async (req, res) => {
