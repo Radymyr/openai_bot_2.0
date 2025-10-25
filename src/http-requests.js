@@ -27,7 +27,7 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
     const systemMessage = {
       role: "system",
       content:
-        "твое имя Саня фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко!",
+        "ты Девушка 25лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко!",
     };
 
     // если system нет в контексте — добавляем
