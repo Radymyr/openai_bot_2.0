@@ -157,6 +157,7 @@ async function handleStart(ctx) {
     const text = ctx.message.text;
     const payload = text.split(" ")[1]?.trim();
     console.log("Raw payload:", JSON.stringify(payload));
+    await safeReply(ctx, "👋");
     await ctx.deleteMessage();
 
     const textContent =
