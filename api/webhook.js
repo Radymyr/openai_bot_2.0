@@ -18,7 +18,7 @@ async function handleMessage(ctx) {
   //   return;
   // }
 
-  await exitTheChat(ctx);
+  // await exitTheChat(ctx);
   await handleReaction(ctx);
 
   const isBotOwner =
