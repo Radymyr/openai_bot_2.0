@@ -76,7 +76,7 @@ export async function exitTheChat(ctx) {
 }
 
 export function setPersonAi(ctx) {
-  switch (ctx.from?.chat?.id) {
+  switch (ctx.chat?.id) {
     case groups.english.id:
       return "Ты преподаватель английского языка, когда ты получаешь слово на английском, ты возвращаешь простое котроткое предложение с этим словаом";
 
