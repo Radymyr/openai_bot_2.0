@@ -1,13 +1,13 @@
 import { bot, botOwnerId, client } from "../src/initializers.js";
 import { dictionary } from "../src/commands.js";
 import { USERS } from "../src/users.js";
-import { getDataFromOpenAi } from "../src/http-requests.js";
+import { getDataFromAi } from "../src/http-requests.js";
 import { makeJokes } from "../src/makeJokes.js";
 import { handleReaction } from "../src/handleReaction.js";
 import { exitTheChat, safeReply } from "../src/additionalMethods.js";
 import { usersTexts } from "../src/constans/texts.js";
 import { addToContext } from "../src/addNewContext.js";
-import { currentGroupId } from "../src/groups.js";
+import { currentGroupId, groups } from "../src/groups.js";
 
 async function handleMessage(ctx) {
   const usersIds = USERS.map((user) => user.id);
@@ -130,14 +130,15 @@ async function handleMessage(ctx) {
     if (
       ctx.message.reply_to_message?.from.is_bot ||
       dictionary.some((name) => loweredText?.includes(name)) ||
-      (ctx.chat.type === "private" && !isBotOwner)
+      (ctx.chat.type === "private" && !isBotOwner) ||
+      ctx.chat.id.toString() === groups.english.id
     ) {
       const originalMessage = ctx.message?.message_id;
 
       const textMessage = ctx.message?.text;
 
-      const response = await getDataFromOpenAi({
-        userId: ctx.message.id,
+      const response = await getDataFromAi({
+        userId: ctx.chat.id,
         textMessage,
         ctx,
       });
@@ -182,7 +183,7 @@ async function handleStart(ctx) {
 // Регистрация обработчика сообщений
 bot.start(handleStart);
 bot.on("message", handleMessage);
-// await bot.launch();
+await bot.launch();
 
 // Serverless-функция для Vercel
 export default async (req, res) => {

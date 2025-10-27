@@ -9,7 +9,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
 
-export async function getDataFromOpenAi({
+export async function getDataFromAi({
   userId,
   textMessage,
   startParams = {},
