@@ -1,4 +1,5 @@
 import { bot } from "./initializers.js";
+import { groups, groupsIds } from "./groups.js";
 
 export async function safeReply(ctx, text, extra = {}) {
   try {
@@ -29,19 +30,16 @@ export async function banChatMember(ctx, sec = 60) {
     });
 
     await ctx.reply(`user: ${ctx.message.from.id} is banned`);
-
-    console.log(
-      "userID:",
-      ctx.message.from.id,
-      "user name:",
-      ctx.from.first_name,
-    );
   } catch (error) {
     console.error("Error:", error);
   }
 }
 
 export async function exitTheChat(ctx) {
+  if (ctx.message?.from?.is_bot) {
+    return;
+  }
+
   if (ctx.chat.type === "private") {
     return;
   }
@@ -74,5 +72,15 @@ export async function exitTheChat(ctx) {
     await bot.telegram.leaveChat(ctx.chat?.id);
   } catch (error) {
     console.error(error);
+  }
+}
+
+export function setPersonAi(ctx) {
+  switch (ctx.from?.chat?.id) {
+    case groups.english.id:
+      return "Ты преподаватель английского языка, когда ты получаешь слово на английском, ты возвращаешь простое котроткое предложение с этим словаом";
+
+    default:
+      return "ты Девушка 25 лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко! иногда шутишь пошло и двусмысленно";
   }
 }

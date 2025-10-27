@@ -2,13 +2,19 @@ import { addToContext, getContext } from "./addNewContext.js";
 import { Groq } from "groq-sdk";
 import { bot } from "./initializers.js";
 import { currentGroupId } from "./groups.js";
+import { setPersonAi } from "./additionalMethods.js";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
 
-export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
+export async function getDataFromOpenAi(
+  userId,
+  textMessage,
+  startParams = {},
+  ctx,
+) {
   if (!userId) {
     throw new Error("userId not transferred");
   }
@@ -27,8 +33,7 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
     // 3️⃣ Гарантируем наличие system-сообщения
     const systemMessage = {
       role: "system",
-      content:
-        "ты Девушка 25 лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко! иногда шутишь пошло и двусмысленно",
+      content: setPersonAi(ctx),
     };
 
     // если system нет в контексте — добавляем
@@ -46,7 +51,6 @@ export async function getDataFromOpenAi(userId, textMessage, startParams = {}) {
     messages.push(message);
 
     // 5️⃣ Лог для отладки (удали потом)
-    console.log("---messages >>>", JSON.stringify(messages, null, 2));
 
     // 6️⃣ Запрос к модели Groq
     const chatCompletion = await groq.chat.completions.create({

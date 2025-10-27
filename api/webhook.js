@@ -50,7 +50,7 @@ async function handleMessage(ctx) {
       }
       return;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       ctx.reply(error);
       return;
     }
@@ -156,7 +156,6 @@ async function handleStart(ctx) {
   try {
     const text = ctx.message.text;
     const payload = text.split(" ")[1]?.trim();
-    console.log("Raw payload:", JSON.stringify(payload));
     await safeReply(ctx, "👋");
     await ctx.deleteMessage();
 
@@ -192,7 +191,6 @@ export default async (req, res) => {
 
   try {
     const update = req?.body;
-    console.log(req.url);
     console.log(update);
     await bot.handleUpdate(update);
     res.status(200).json({ ok: true });

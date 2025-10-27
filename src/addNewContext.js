@@ -2,8 +2,6 @@ import { client } from "./initializers.js";
 
 const saveToRedis = async (key, data) => {
   try {
-    console.log("typeof data before save:", typeof data, data);
-
     await client.set(key, data, { ex: 60 * 60 * 24 * 30 });
   } catch (error) {
     console.error("Error saving to Redis:", error.message);
@@ -13,7 +11,6 @@ const saveToRedis = async (key, data) => {
 const getFromRedis = async (key) => {
   try {
     const data = await client.get(key);
-    console.log("real data in Redis:", data);
     if (!data) {
       return [];
     }
@@ -33,7 +30,6 @@ export const getContext = async (userId) => {
   const stringUserId = userId.toString();
 
   const context = await getFromRedis(stringUserId);
-  console.log("context in get Context:", context);
 
   return await trimContext(context);
 };
@@ -53,8 +49,6 @@ export const addToContext = async (message, userId, answer = {}) => {
     } else {
       newContext = [...context, message];
     }
-
-    console.log("ID_USER:", userId, "newContext:", newContext);
 
     await saveToRedis(userId.toString(), newContext);
 
