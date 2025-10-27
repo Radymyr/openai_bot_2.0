@@ -198,6 +198,6 @@ export default async (req, res) => {
     res.status(200).json({ ok: true });
   } catch (error) {
     console.error("Webhook error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(200).json({ ok: false });
   }
 };
