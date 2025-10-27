@@ -136,10 +136,11 @@ async function handleMessage(ctx) {
 
       const textMessage = ctx.message?.text;
 
-      const response = await getDataFromOpenAi(
-        ctx.message.from.id,
+      const response = await getDataFromOpenAi({
+        userId: ctx.message.id,
         textMessage,
-      );
+        ctx,
+      });
 
       await ctx.reply(response, { reply_to_message_id: originalMessage });
     }
