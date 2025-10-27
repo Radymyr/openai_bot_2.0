@@ -1,5 +1,5 @@
 import { bot } from "./initializers.js";
-import { groups, groupsIds } from "./groups.js";
+import { groups } from "./groups.js";
 
 export async function safeReply(ctx, text, extra = {}) {
   try {
