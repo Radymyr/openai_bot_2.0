@@ -127,6 +127,18 @@ async function handleMessage(ctx) {
     // await makeJokes(ctx);
 
     // Ответ на реплаи бота или обращение по имени
+
+    const textMessage = ctx.message?.text;
+
+    const messageLength = textMessage.split(" ").length;
+
+    if (messageLength >= 3 && ctx.chat.id.toString() === groups.english.id) {
+      await safeReply(ctx, textMessage, {
+        reply_to_message_id: ctx.message.message_id,
+      });
+      return;
+    }
+
     if (
       ctx.message.reply_to_message?.from.is_bot ||
       dictionary.some((name) => loweredText?.includes(name)) ||
@@ -135,19 +147,21 @@ async function handleMessage(ctx) {
     ) {
       const originalMessage = ctx.message?.message_id;
 
-      const textMessage = ctx.message?.text;
-
       const response = await getDataFromAi({
         userId: ctx.chat.id,
         textMessage,
         ctx,
       });
 
+      if (!response) {
+        return;
+      }
+
       await ctx.reply(response, { reply_to_message_id: originalMessage });
     }
   } catch (err) {
     await ctx.reply(
-      `Прости бро ${ctx.from.first_name}, я не знаю как это понимать, напиши текстом ;)`,
+      `Прости ${ctx.from.first_name}, я не знаю как это понимать, напиши текстом ;)`,
       { reply_to_message_id: ctx.message.message_id },
     );
     console.error(err);
@@ -183,7 +197,7 @@ async function handleStart(ctx) {
 // Регистрация обработчика сообщений
 bot.start(handleStart);
 bot.on("message", handleMessage);
-// await bot.launch();
+await bot.launch();
 
 // Serverless-функция для Vercel
 export default async (req, res) => {
