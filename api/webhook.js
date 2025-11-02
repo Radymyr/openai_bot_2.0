@@ -197,7 +197,7 @@ async function handleStart(ctx) {
 // Регистрация обработчика сообщений
 bot.start(handleStart);
 bot.on("message", handleMessage);
-await bot.launch();
+// await bot.launch();
 
 // Serverless-функция для Vercel
 export default async (req, res) => {
