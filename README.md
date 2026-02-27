@@ -23,6 +23,30 @@ UPSTASH_REDIS_TOKEN=your_upstash_redis_token
 WEBHOOK_URL=https://your-project-name.vercel.app/api/bot
 ```
 
+`WEBHOOK_URL` нужен только для локального скрипта `npm run set-webhook`.
+
+## Переключатели И ID
+
+Все переключатели поведения и основные chat id находятся в одном месте:
+
+- `src/config/runtime.ts`
+
+Основные параметры:
+- `WATCHED_CHAT_ID` — чат, куда владелец пишет через бота из лички (без reply).
+- `ENGLISH_CHAT_ID` — чат со специальными правилами английского режима.
+- `AI_PROVIDER` — активный AI-провайдер (`groq`/`openai`).
+- `ENABLE_USER_ALLOWLIST` — включить/выключить фильтр по `USERS`.
+- `ENABLE_REACTIONS` — включить/выключить реакции.
+- `ENABLE_OWNER_FORWARDING` — пересылка всех входящих сообщений владельцу.
+- `ENABLE_OWNER_PROXY_TO_WATCHED_CHAT` — режим “владелец пишет в watched chat через личку”.
+- `ENABLE_PRIVATE_TRIGGER` — приватный AI-триггер.
+- `ENABLE_ENGLISH_ECHO` — эхо-режим в английском чате.
+
+AI интеграция вынесена в отдельный слой:
+- `src/ai/index.ts` — выбор провайдера
+- `src/ai/providers/groq-provider.ts` — текущая реализация
+- `src/ai/providers/openai-provider.ts` — шаблон для OpenAI
+
 ## Локальный запуск
 
 1. Установи зависимости:
@@ -87,7 +111,6 @@ npm run deploy
 - `GROQ_API_KEY`
 - `UPSTASH_REDIS_URL`
 - `UPSTASH_REDIS_TOKEN`
-- `WEBHOOK_URL` (с доменом прод-окружения)
 
 ## Установка Telegram webhook
 
@@ -95,6 +118,12 @@ npm run deploy
 
 ```bash
 npm run set-webhook
+```
+
+Пример корректного webhook URL (обязательно с роутом из `api`):
+
+```text
+https://your-project-name.vercel.app/api/bot
 ```
 
 Скрипт использует:

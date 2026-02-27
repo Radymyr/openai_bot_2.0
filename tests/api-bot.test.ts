@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const startMock = vi.fn();
 const onMock = vi.fn();
 const handleUpdateMock = vi.fn();
+const handleStartMock = vi.fn();
+const handleMessageMock = vi.fn();
 
 vi.mock("../src/initializers.js", () => ({
   bot: {
@@ -10,6 +12,14 @@ vi.mock("../src/initializers.js", () => ({
     on: onMock,
     handleUpdate: handleUpdateMock,
   },
+}));
+
+vi.mock("../src/handlers/start-handler.js", () => ({
+  handleStart: handleStartMock,
+}));
+
+vi.mock("../src/handlers/message-handler.js", () => ({
+  handleMessage: handleMessageMock,
 }));
 
 interface MockRes {

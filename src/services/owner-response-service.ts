@@ -1,5 +1,5 @@
 import { dictionary } from "../commands.js";
-import { groups } from "../groups.js";
+import { ENABLE_ENGLISH_ECHO, ENGLISH_CHAT_ID } from "../config/runtime.js";
 import { getDataFromAi } from "../http-requests.js";
 import { safeReply } from "../utils.js";
 import {
@@ -10,9 +10,15 @@ import {
 } from "../types/guards.js";
 import { isReplyToBot } from "./message-context.js";
 
+interface ConversationOptions {
+  includePrivateTrigger?: boolean;
+}
+
 export async function handleOwnerConversation(
   ctx: AnyMessageCtx,
+  options: ConversationOptions = {},
 ): Promise<void> {
+  const { includePrivateTrigger = false } = options;
   const replyToBot = isReplyToBot(ctx);
 
   if (isVoice(ctx) && replyToBot) {
@@ -30,9 +36,10 @@ export async function handleOwnerConversation(
   }
 
   if (!isText(ctx) && replyToBot) {
+    const firstName = ctx.from?.first_name ?? "друг";
     await safeReply(
       ctx,
-      `Ха, ха ${ctx.from.first_name}, смешно, но больше так не делай, а то по IP вычислю`,
+      `Ха, ха ${firstName}, смешно, но больше так не делай, а то по IP вычислю`,
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
     return;
@@ -44,9 +51,9 @@ export async function handleOwnerConversation(
 
   const textMessage = ctx.message.text;
   const loweredText = textMessage.toLowerCase();
-  const isEnglishGroup = ctx.chat.id.toString() === groups.english.id;
+  const isEnglishGroup = ctx.chat.id.toString() === String(ENGLISH_CHAT_ID);
 
-  if (textMessage.split(" ").length >= 3 && isEnglishGroup) {
+  if (ENABLE_ENGLISH_ECHO && textMessage.split(" ").length >= 3 && isEnglishGroup) {
     await safeReply(ctx, textMessage, {
       reply_parameters: { message_id: ctx.message.message_id },
     });
@@ -56,7 +63,8 @@ export async function handleOwnerConversation(
   const shouldAnswerWithAi =
     replyToBot ||
     dictionary.some((name) => loweredText.includes(name)) ||
-    isEnglishGroup;
+    isEnglishGroup ||
+    includePrivateTrigger;
 
   if (!shouldAnswerWithAi) {
     return;

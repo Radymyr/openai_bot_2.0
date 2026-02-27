@@ -109,4 +109,28 @@ describe("owner-response-service", () => {
     expect(getDataFromAiMock).not.toHaveBeenCalled();
     expect(safeReplyMock).not.toHaveBeenCalled();
   });
+
+  it("calls AI in private chat when private trigger is enabled", async () => {
+    const { handleOwnerConversation } = await import(
+      "../src/services/owner-response-service.js"
+    );
+    getDataFromAiMock.mockResolvedValueOnce("Private AI");
+
+    const ctx = createTextCtx("hello", 500);
+    (ctx.chat as { type: string }).type = "private";
+    (ctx.message.chat as { type: string }).type = "private";
+
+    await handleOwnerConversation(ctx, { includePrivateTrigger: true });
+
+    expect(getDataFromAiMock).toHaveBeenCalledWith({
+      userId: 500,
+      textMessage: "hello",
+      ctx,
+    });
+    expect(safeReplyMock).toHaveBeenCalledWith(
+      ctx,
+      "Private AI",
+      expect.any(Object),
+    );
+  });
 });

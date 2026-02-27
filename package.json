@@ -4,10 +4,10 @@
   "description": "openai bot",
   "main": "api/bot.ts",
   "scripts": {
-    "start": "vercel dev",
+    "dev": "vercel dev",
     "deploy": "vercel --prod",
     "typecheck": "tsc --noEmit",
-    "set-webhook": "node --experimental-strip-types src/setWebhook.ts",
+    "set-webhook": "tsx src/setWebhook.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -35,6 +35,7 @@
   "type": "module",
   "devDependencies": {
     "prettier": "^3.6.2",
+    "tsx": "^4.21.0",
     "vitest": "^3.2.4"
   },
   "keywords": []

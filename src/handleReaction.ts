@@ -1,11 +1,22 @@
-import { bot } from "./initializers.js";
 import { reactions } from "./constans/reactions.js";
-import { USERS } from "./users.js";
-import type { AnyMessageCtx } from "./types/guards.js";
+import { bot } from "./initializers.js";
 import { reportError } from "./lib/error-handler.js";
+import type { AnyMessageCtx } from "./types/guards.js";
+import { USERS } from "./users.js";
+import { ENABLE_REACTIONS, REACTION_PROBABILITY } from "./config/runtime.js";
 
 export const handleReaction = async (ctx: AnyMessageCtx): Promise<void> => {
-  if (Math.random() > 0.2 && USERS[2]?.id !== ctx.message.from.id) {
+  if (!ENABLE_REACTIONS) {
+    return;
+  }
+
+  const senderId = ctx.message?.from?.id;
+
+  if (typeof senderId !== "number") {
+    return;
+  }
+
+  if (Math.random() > REACTION_PROBABILITY && USERS[2]?.id !== senderId) {
     return;
   }
 

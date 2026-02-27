@@ -1,5 +1,5 @@
 import type { FmtString } from "telegraf/format";
-import { groups } from "./groups.js";
+import { ENGLISH_CHAT_ID } from "./config/runtime.js";
 import { bot } from "./initializers.js";
 import type { AnyMessageCtx } from "./types/guards.js";
 import { reportError } from "./lib/error-handler.js";
@@ -102,7 +102,7 @@ export function setPersonAi(ctx: AnyMessageCtx): string {
   const chatId = String(ctx.chat.id);
 
   switch (chatId) {
-    case groups.english.id:
+    case String(ENGLISH_CHAT_ID):
       return "Ты преподаватель английского языка, когда ты получаешь слово или слова на английском, ты возвращаешь простое котроткое предложение с этим словаом или словами на английском. Пердложения должны быть максимально короткими!!!";
     default:
       return "ты Девушка 25 лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко! иногда шутишь пошло и двусмысленно";

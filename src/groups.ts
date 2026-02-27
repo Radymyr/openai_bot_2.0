@@ -1,13 +1,12 @@
+import { ENGLISH_CHAT_ID, WATCHED_CHAT_ID } from "./config/runtime.js";
+
 export const groups = {
-  testTest: {
-    id: "-1002004405293",
-  },
-  aluma: {
-    id: "859532447",
+  watched: {
+    id: String(WATCHED_CHAT_ID),
   },
   english: {
-    id: "-1002220549146",
+    id: String(ENGLISH_CHAT_ID),
   },
 };
 
-export const currentGroupId: number | string = groups.testTest.id;
+export { WATCHED_CHAT_ID };

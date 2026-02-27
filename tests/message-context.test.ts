@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AnyMessageCtx } from "../src/types/guards.js";
 import {
   buildOwnerCaption,
+  extractTargetChatIdFromOwnerReply,
   isBotOwnerMessage,
   isReplyToBot,
   isReplyToHuman,
@@ -31,6 +32,11 @@ describe("message-context service", () => {
     expect(isBotOwnerMessage(ctx, "1")).toBe(false);
   });
 
+  it("does not crash when sender is missing", () => {
+    const ctx = createCtx({ from: undefined });
+    expect(isBotOwnerMessage(ctx, "275210708")).toBe(false);
+  });
+
   it("detects reply target type", () => {
     const replyToHumanCtx = createCtx({
       reply_to_message: { from: { id: 500, is_bot: false } },
@@ -49,6 +55,40 @@ describe("message-context service", () => {
   it("builds owner caption", () => {
     const ctx = createCtx();
     expect(buildOwnerCaption(ctx)).toContain("chat ID: 123");
-    expect(buildOwnerCaption(ctx)).toContain("Message Id: 42");
+    expect(buildOwnerCaption(ctx)).toContain("message ID: 42");
+    expect(buildOwnerCaption(ctx)).toContain("chat type: private");
+  });
+
+  it("extracts target chat id from relayed reply text", () => {
+    const ctx = createCtx({
+      reply_to_message: {
+        from: { id: 999, is_bot: true },
+        text: "chat ID: -1002220549146 (Alice ID:11) Message Id: 77: hello",
+      },
+    });
+
+    expect(extractTargetChatIdFromOwnerReply(ctx)).toBe(-1002220549146);
+  });
+
+  it("returns null when relayed reply has no chat id marker", () => {
+    const ctx = createCtx({
+      reply_to_message: {
+        from: { id: 999, is_bot: true },
+        text: "random text",
+      },
+    });
+
+    expect(extractTargetChatIdFromOwnerReply(ctx)).toBeNull();
+  });
+
+  it("extracts target chat id from relayed caption", () => {
+    const ctx = createCtx({
+      reply_to_message: {
+        from: { id: 999, is_bot: true },
+        caption: "chat ID: 859532447 | chat type: private | sender: User",
+      },
+    });
+
+    expect(extractTargetChatIdFromOwnerReply(ctx)).toBe(859532447);
   });
 });

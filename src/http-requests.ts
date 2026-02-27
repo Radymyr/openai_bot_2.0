@@ -1,16 +1,11 @@
-import { Groq } from "groq-sdk";
-import type { TextCtx } from "./types/context.js";
-import {
-  addToContext,
-  getContext,
-  type ContextMessage,
-} from "./addNewContext.js";
+import { addToContext, getContext, type ContextMessage } from "./addNewContext.js";
+import { getAIProvider } from "./ai/index.js";
+import { AIProviderError } from "./ai/types.js";
+import { WATCHED_CHAT_ID } from "./config/runtime.js";
 import { bot } from "./initializers.js";
-import { currentGroupId } from "./groups.js";
-import { setPersonAi } from "./utils.js";
 import { reportError } from "./lib/error-handler.js";
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+import type { TextCtx } from "./types/context.js";
+import { setPersonAi } from "./utils.js";
 
 const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
@@ -57,16 +52,7 @@ export async function getDataFromAi({
 
     messages.push(message);
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages,
-      model: "llama-3.3-70b-versatile",
-      temperature: 1,
-      max_completion_tokens: 1024,
-      top_p: 1,
-      stop: null,
-    });
-
-    const answerContent = chatCompletion.choices[0]?.message?.content;
+    const answerContent = await getAIProvider().complete(messages);
 
     if (!answerContent) {
       return null;
@@ -84,12 +70,14 @@ export async function getDataFromAi({
     reportError("Error in getDataFromAi", error, { userId });
 
     const status =
-      typeof error === "object" && error !== null && "response" in error
-        ? (error as { response?: { status?: number } }).response?.status
-        : undefined;
+      error instanceof AIProviderError
+        ? error.status
+        : typeof error === "object" && error !== null && "response" in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined;
 
     if (status === 429) {
-      await bot.telegram.sendMessage(currentGroupId, textLimit);
+      await bot.telegram.sendMessage(WATCHED_CHAT_ID, textLimit);
     }
 
     throw error;

@@ -1,5 +1,4 @@
-import { bot, botOwnerId } from "../initializers.js";
-import { currentGroupId } from "../groups.js";
+import { botOwnerId } from "../initializers.js";
 import {
   safeSendAnimation,
   safeSendMessage,
@@ -20,38 +19,52 @@ interface ForwardFromUserOptions {
   caption: string;
 }
 
-export async function forwardOwnerReplyToGroup(
+export async function forwardOwnerReplyToChat(
   ctx: AnyMessageCtx,
+  chatId: number | string,
 ): Promise<boolean> {
   if (isPhoto(ctx)) {
     const photoId = ctx.message.photo[0]?.file_id;
     if (photoId) {
-      await bot.telegram.sendPhoto(currentGroupId, photoId);
+      const sent = await safeSendPhoto(chatId, photoId);
+      return Boolean(sent);
     }
-    return true;
+    return false;
   }
 
   if (isAnimation(ctx)) {
-    await bot.telegram.sendAnimation(currentGroupId, ctx.message.animation.file_id);
-    return true;
+    const animationId = ctx.message.animation?.file_id;
+    if (!animationId) {
+      return false;
+    }
+    const sent = await safeSendAnimation(chatId, animationId);
+    return Boolean(sent);
   }
 
   if (isVoice(ctx)) {
-    await bot.telegram.sendVoice(currentGroupId, ctx.message.voice.file_id);
-    return true;
+    const voiceId = ctx.message.voice?.file_id;
+    if (!voiceId) {
+      return false;
+    }
+    const sent = await safeSendVoice(chatId, voiceId);
+    return Boolean(sent);
   }
 
   if (isVideoNote(ctx)) {
-    await bot.telegram.sendVideoNote(currentGroupId, ctx.message.video_note.file_id);
-    return true;
+    const videoNoteId = ctx.message.video_note?.file_id;
+    if (!videoNoteId) {
+      return false;
+    }
+    const sent = await safeSendVideoNote(chatId, videoNoteId);
+    return Boolean(sent);
   }
 
   if (isText(ctx)) {
-    await safeSendMessage(currentGroupId, ctx.message.text);
-    return true;
+    const sent = await safeSendMessage(chatId, ctx.message.text);
+    return Boolean(sent);
   }
 
-  return true;
+  return false;
 }
 
 export async function forwardUserMessageToOwner(
@@ -69,17 +82,35 @@ export async function forwardUserMessageToOwner(
   }
 
   if (isAnimation(ctx)) {
-    await safeSendAnimation(botOwnerId, ctx.message.animation.file_id, { caption });
+    const animationId = ctx.message.animation?.file_id;
+    if (!animationId) {
+      await safeSendMessage(botOwnerId, `${caption}: animation without file_id`);
+      return true;
+    }
+    await safeSendAnimation(botOwnerId, animationId, {
+      caption,
+    });
     return true;
   }
 
   if (isVoice(ctx)) {
-    await safeSendVoice(botOwnerId, ctx.message.voice.file_id, { caption });
+    const voiceId = ctx.message.voice?.file_id;
+    if (!voiceId) {
+      await safeSendMessage(botOwnerId, `${caption}: voice without file_id`);
+      return true;
+    }
+    await safeSendVoice(botOwnerId, voiceId, { caption });
     return true;
   }
 
   if (isVideoNote(ctx)) {
-    await safeSendVideoNote(botOwnerId, ctx.message.video_note.file_id);
+    const videoNoteId = ctx.message.video_note?.file_id;
+    if (!videoNoteId) {
+      await safeSendMessage(botOwnerId, `${caption}: video_note without file_id`);
+      return true;
+    }
+    await safeSendMessage(botOwnerId, caption);
+    await safeSendVideoNote(botOwnerId, videoNoteId);
     return true;
   }
 
