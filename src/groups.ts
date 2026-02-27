@@ -10,4 +10,4 @@ export const groups = {
   },
 };
 
-export const currentGroupId = groups.testTest;
+export const currentGroupId: number | string = groups.testTest.id;

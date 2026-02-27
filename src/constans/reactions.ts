@@ -1,4 +1,6 @@
-export const reactions = [
+import type { TelegramEmoji } from "@telegraf/types";
+
+export const reactions: TelegramEmoji[] = [
   "👍",
   "👎",
   "❤",

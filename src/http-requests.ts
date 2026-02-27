@@ -1,58 +1,62 @@
-import { addToContext, getContext } from "./addNewContext.js";
 import { Groq } from "groq-sdk";
+import type { TextCtx } from "./types/context.js";
+import {
+  addToContext,
+  getContext,
+  type ContextMessage,
+} from "./addNewContext.js";
 import { bot } from "./initializers.js";
 import { currentGroupId } from "./groups.js";
-import { setPersonAi } from "./additionalMethods.js";
+import { setPersonAi } from "./utils.js";
+import { reportError } from "./lib/error-handler.js";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
 
+interface GetDataFromAiParams {
+  userId: number | string;
+  textMessage: string;
+  ctx: TextCtx;
+  startParams?: ContextMessage;
+}
+
 export async function getDataFromAi({
   userId,
   textMessage,
-  startParams = {},
+  startParams,
   ctx,
-}) {
+}: GetDataFromAiParams): Promise<string | null> {
   if (!userId) {
     throw new Error("userId not transferred");
   }
 
   try {
-    // 1️⃣ Сообщение от пользователя
-    const message = {
+    const message: ContextMessage = {
       role: "user",
       content: textMessage || "Message is empty",
     };
 
-    // 2️⃣ Забираем контекст из Redis
     let context = await getContext(userId);
-    if (!Array.isArray(context)) context = [];
 
-    // 3️⃣ Гарантируем наличие system-сообщения
-    const systemMessage = {
+    const systemMessage: ContextMessage = {
       role: "system",
       content: setPersonAi(ctx),
     };
 
-    // если system нет в контексте — добавляем
     if (!context.some((msg) => msg.role === "system")) {
       context = [systemMessage, ...context];
     }
 
-    // 4️⃣ Формируем полный массив сообщений
-    const messages = [...context];
+    const messages: ContextMessage[] = [...context];
 
-    if (Object.values(startParams).length > 0) {
+    if (startParams) {
       messages.push(startParams);
     }
 
     messages.push(message);
 
-    // 5️⃣ Лог для отладки (удали потом)
-
-    // 6️⃣ Запрос к модели Groq
     const chatCompletion = await groq.chat.completions.create({
       messages,
       model: "llama-3.3-70b-versatile",
@@ -62,21 +66,29 @@ export async function getDataFromAi({
       stop: null,
     });
 
-    const answer = chatCompletion.choices[0].message;
+    const answerContent = chatCompletion.choices[0]?.message?.content;
 
-    // 7️⃣ Сохраняем в контекст
+    if (!answerContent) {
+      return null;
+    }
+
+    const answer: ContextMessage = {
+      role: "assistant",
+      content: answerContent,
+    };
+
     await addToContext(message, userId, answer);
 
-    // 8️⃣ Возвращаем ответ
     return answer.content;
-  } catch (error) {
-    console.error(
-      `Error in getDataFromOpenAi for user ${userId}:`,
-      error.message || error,
-    );
+  } catch (error: unknown) {
+    reportError("Error in getDataFromAi", error, { userId });
 
-    // 9️⃣ Обработка лимитов API
-    if (error?.response?.status === 429) {
+    const status =
+      typeof error === "object" && error !== null && "response" in error
+        ? (error as { response?: { status?: number } }).response?.status
+        : undefined;
+
+    if (status === 429) {
       await bot.telegram.sendMessage(currentGroupId, textLimit);
     }
 
