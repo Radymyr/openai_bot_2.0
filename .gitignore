@@ -37,3 +37,7 @@ coverage/
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Local sensitive data
+src/users.ts
+src/constans/texts.ts
