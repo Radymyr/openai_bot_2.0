@@ -1,4 +1,5 @@
 import type { FmtString } from "telegraf/format";
+import type { ParseMode } from "telegraf/types";
 import { ENGLISH_CHAT_ID } from "./config/runtime.js";
 import { bot } from "./initializers.js";
 import type { AnyMessageCtx } from "./types/guards.js";
@@ -10,6 +11,36 @@ type SendAnimationExtra = Parameters<typeof bot.telegram.sendAnimation>[2];
 type SendPhotoExtra = Parameters<typeof bot.telegram.sendPhoto>[2];
 type SendVoiceExtra = Parameters<typeof bot.telegram.sendVoice>[2];
 type SendVideoNoteExtra = Parameters<typeof bot.telegram.sendVideoNote>[2];
+export type TelegramParseMode = ParseMode;
+
+interface PersonAiConfig {
+  prompt: string;
+  parseMode?: TelegramParseMode;
+}
+
+const ENGLISH_PROMPT_PLAIN = `Проверь предложения на английском.
+Ответ:
+✅ <правильное предложение>
+❌ <неправильное предложение>
+пустая строка
+Исправление: <правильный вариант>
+пустая строка
+Объяснение: <кратко на русском> + краткая суть времени, чтобы человек понимал, зачем так пишется
+Только обычный текст. Без Markdown.
+Подчеркивай ошибки.`;
+
+const ENGLISH_PROMPT_HTML = `Проверь предложения на английском.
+Ответ:
+✅ <правильное предложение>
+❌ <неправильное предложение>
+пустая строка
+Исправление: <правильный вариант>
+пустая строка
+Объяснение: <кратко на русском> + краткая суть времени, чтобы человек понимал, зачем так пишется
+Не используй Markdown.`;
+
+const DEFAULT_PERSON_PROMPT =
+  "ты Девушка 25 лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко! иногда шутишь пошло и двусмысленно";
 
 export async function safeReply(
   ctx: AnyMessageCtx,
@@ -98,13 +129,38 @@ export async function safeSendVideoNote(
   }
 }
 
-export function setPersonAi(ctx: AnyMessageCtx): string {
+export function setPersonAi(
+  ctx: AnyMessageCtx,
+  parseMode?: TelegramParseMode,
+): PersonAiConfig {
   const chatId = String(ctx.chat.id);
 
   switch (chatId) {
     case String(ENGLISH_CHAT_ID):
-      return "Ты преподаватель английского языка, когда ты получаешь слово или слова на английском, ты возвращаешь простое котроткое предложение с этим словаом или словами на английском. Пердложения должны быть максимально короткими!!!";
+      return {
+        prompt:
+          parseMode === "HTML" ? ENGLISH_PROMPT_HTML : ENGLISH_PROMPT_PLAIN,
+        parseMode,
+      };
     default:
-      return "ты Девушка 25 лет, твое имя Саша фамилия Зелень, ты разговариваешь слегка хамовито, отвечаешь кратко! иногда шутишь пошло и двусмысленно";
+      return {
+        prompt: DEFAULT_PERSON_PROMPT,
+        parseMode,
+      };
+  }
+}
+
+export function deleteUserMessage(
+  ctx: AnyMessageCtx,
+  englishChatId: string | number,
+) {
+  if (String(ctx.chat?.id) !== String(englishChatId)) {
+    return;
+  }
+
+  try {
+    ctx?.deleteMessage(ctx.message.message_id);
+  } catch (error) {
+    console.log(error);
   }
 }

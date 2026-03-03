@@ -1,11 +1,19 @@
-import { addToContext, getContext, type ContextMessage } from "./addNewContext.js";
+import {
+  addToContext,
+  getContext,
+  type ContextMessage,
+} from "./addNewContext.js";
 import { getAIProvider } from "./ai/index.js";
 import { AIProviderError } from "./ai/types.js";
-import { WATCHED_CHAT_ID } from "./config/runtime.js";
+import { ENGLISH_CHAT_ID, WATCHED_CHAT_ID } from "./config/runtime.js";
 import { bot } from "./initializers.js";
 import { reportError } from "./lib/error-handler.js";
 import type { TextCtx } from "./types/context.js";
-import { setPersonAi } from "./utils.js";
+import {
+  deleteUserMessage,
+  setPersonAi,
+  type TelegramParseMode,
+} from "./utils.js";
 
 const textLimit =
   "Я курю калик и мне все равно, что ты там хочешь. Я в отпуске";
@@ -17,12 +25,17 @@ interface GetDataFromAiParams {
   startParams?: ContextMessage;
 }
 
+export interface AiResponse {
+  text: string;
+  parseMode?: TelegramParseMode;
+}
+
 export async function getDataFromAi({
   userId,
   textMessage,
   startParams,
   ctx,
-}: GetDataFromAiParams): Promise<string | null> {
+}: GetDataFromAiParams): Promise<AiResponse | null> {
   if (!userId) {
     throw new Error("userId not transferred");
   }
@@ -35,9 +48,11 @@ export async function getDataFromAi({
 
     let context = await getContext(userId);
 
+    const isEnglishChat = String(ctx.chat.id) === String(ENGLISH_CHAT_ID);
+    const personAiConfig = setPersonAi(ctx, isEnglishChat ? "HTML" : undefined);
     const systemMessage: ContextMessage = {
       role: "system",
-      content: setPersonAi(ctx),
+      content: personAiConfig.prompt,
     };
 
     if (!context.some((msg) => msg.role === "system")) {
@@ -65,7 +80,12 @@ export async function getDataFromAi({
 
     await addToContext(message, userId, answer);
 
-    return answer.content;
+    deleteUserMessage(ctx, ENGLISH_CHAT_ID);
+
+    return {
+      text: answer.content,
+      parseMode: personAiConfig.parseMode,
+    };
   } catch (error: unknown) {
     reportError("Error in getDataFromAi", error, { userId });
 

@@ -26,7 +26,7 @@ export const ENABLE_OWNER_PROXY_TO_WATCHED_CHAT = true;
 // Allow AI auto-trigger in private chats.
 export const ENABLE_PRIVATE_TRIGGER = true;
 // Enable "echo" mode in ENGLISH_CHAT_ID for 3+ word messages.
-export const ENABLE_ENGLISH_ECHO = true;
+export const ENABLE_ENGLISH_ECHO = false;
 
 // Active AI provider (switchable integration point).
 export const AI_PROVIDER: AIProviderName = "groq";

@@ -80,7 +80,8 @@ export async function handleOwnerConversation(
     return;
   }
 
-  await safeReply(ctx, response, {
+  await safeReply(ctx, response.text, {
     reply_parameters: { message_id: ctx.message.message_id },
+    ...(response.parseMode ? { parse_mode: response.parseMode } : {}),
   });
 }
