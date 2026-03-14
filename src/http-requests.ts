@@ -49,7 +49,7 @@ export async function getDataFromAi({
     let context = await getContext(userId);
 
     const isEnglishChat = String(ctx.chat.id) === String(ENGLISH_CHAT_ID);
-    const personAiConfig = setPersonAi(ctx, isEnglishChat ? "HTML" : undefined);
+    const personAiConfig = setPersonAi(ctx, "Markdown");
     const systemMessage: ContextMessage = {
       role: "system",
       content: personAiConfig.prompt,

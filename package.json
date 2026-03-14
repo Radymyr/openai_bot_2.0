@@ -30,7 +30,7 @@
     "groq-sdk": "^0.34.0",
     "telegraf": "^4.16.3",
     "typescript": "^5.9.3",
-    "vercel": "^48.4.1"
+    "vercel": "^50.32.5"
   },
   "type": "module",
   "devDependencies": {

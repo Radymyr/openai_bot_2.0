@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AnyMessageCtx } from "../src/types/guards.js";
 import { groups } from "../src/groups.js";
+import { ENABLE_ENGLISH_ECHO } from "../src/config/runtime.js";
 
 const safeReplyMock = vi.fn();
 const getDataFromAiMock = vi.fn();
@@ -70,19 +71,28 @@ describe("owner-response-service", () => {
     const ctx = createTextCtx("one two three", Number(groups.english.id));
     await handleOwnerConversation(ctx);
 
-    expect(safeReplyMock).toHaveBeenCalledWith(
-      ctx,
-      "one two three",
-      expect.any(Object),
-    );
-    expect(getDataFromAiMock).not.toHaveBeenCalled();
+    if (ENABLE_ENGLISH_ECHO) {
+      expect(safeReplyMock).toHaveBeenCalledWith(
+        ctx,
+        "one two three",
+        expect.any(Object),
+      );
+      expect(getDataFromAiMock).not.toHaveBeenCalled();
+    } else {
+      expect(safeReplyMock).not.toHaveBeenCalled();
+      expect(getDataFromAiMock).toHaveBeenCalledWith({
+        userId: Number(groups.english.id),
+        textMessage: "one two three",
+        ctx,
+      });
+    }
   });
 
   it("calls AI and replies when dictionary trigger is present", async () => {
     const { handleOwnerConversation } = await import(
       "../src/services/owner-response-service.js"
     );
-    getDataFromAiMock.mockResolvedValueOnce("AI answer");
+    getDataFromAiMock.mockResolvedValueOnce({ text: "AI answer" });
 
     const ctx = createTextCtx("Привет, Саша");
     await handleOwnerConversation(ctx);
@@ -114,7 +124,7 @@ describe("owner-response-service", () => {
     const { handleOwnerConversation } = await import(
       "../src/services/owner-response-service.js"
     );
-    getDataFromAiMock.mockResolvedValueOnce("Private AI");
+    getDataFromAiMock.mockResolvedValueOnce({ text: "Private AI" });
 
     const ctx = createTextCtx("hello", 500);
     (ctx.chat as { type: string }).type = "private";
@@ -131,6 +141,25 @@ describe("owner-response-service", () => {
       ctx,
       "Private AI",
       expect.any(Object),
+    );
+  });
+
+  it("passes parse_mode to Telegram reply when AI response has markup mode", async () => {
+    const { handleOwnerConversation } = await import(
+      "../src/services/owner-response-service.js"
+    );
+    getDataFromAiMock.mockResolvedValueOnce({
+      text: "<u>Error</u>",
+      parseMode: "Markdown",
+    });
+
+    const ctx = createTextCtx("Привет, Саша");
+    await handleOwnerConversation(ctx);
+
+    expect(safeReplyMock).toHaveBeenCalledWith(
+      ctx,
+      "<u>Error</u>",
+      expect.objectContaining({ parse_mode: "Markdown" }),
     );
   });
 });
